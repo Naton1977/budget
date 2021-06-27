@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" th:href="@{/css/globalAdmin.css}">
+</head>
+<body>
+<h1>Добро пожаловать на страцицу глобального администратора </h1>
+<div id="mainContainer">
+    <button id="button1">Посмотреть список всех семей</button>
+    <button id="button2">Посмотреть список членов отденьной семьи</button>
+    <button id="button3">Посмотреть состояние счета семьи</button>
+    <button id="button4">Добавить деньги на счет семьи</button>
+    <button id="button5">Снять деньги со счета семьи</button>
+    <button id="button6">Наложить ограничения на снятие средств семей</button>
+    <button id="button7">Наложить ограничения на снятие средств отдельным пользователем</button>
+    <button id="globalAdminLogout"><a th:href="@{/logout}">Выйти</a> </button>
+    <div id="pushContainer"></div>
+</div>
+
+<script th:src="@{/js/globalAdminPage.js}"></script>
+</body>
+</html>

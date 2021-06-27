@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h3>Приветствуем Вас в программе учета семейного бюджета</h3>
+<p></p>
+<p>Для того чтобы создать новый аккаунт необходимо зарегестрировать администратора семьи</p>
+<p></p>
+<form method="post" th:action="@{/createFamily}">
+    <p></p>
+    <label>Введите фамилию администратора семьи<br>
+        <input type="text" name="firstName">
+    </label>
+    <p></p>
+    <label>Введите имя администравора семьи<br>
+        <input type="text" name="lastName">
+    </label>
+    <p></p>
+    <label>Введите отчество администратора семьи<br>
+        <input type="text" name="patronymic">
+    </label>
+    <p></p>
+    <label>Введите логин администратора семь<br>
+        <input type="text" name="memberLogin">
+    </label>
+    <p></p>
+    <label>Введите личный пароль администратора семьи<br>
+        <input type="text" name="memberPassword">
+    </label>
+    <p></p>
+    <label>Повторите пароль администратора семьи<br>
+        <input type="text" name="confirmMemberPassword">
+    </label>
+    <p></p>
+    <label>Ведите логин семьи<br>
+        <input type="text" name="familyLogin">
+    </label>
+    <p></p>
+    <label>Ведите пароль семьи<br>
+        <input type="text" name="familyPassword">
+    </label>
+    <p></p>
+    <label>Повторите пароль семьи<br>
+        <input type="text" name="confirmFamilyPassword">
+    </label>
+    <p></p>
+    <input type="submit">
+</form>
+
+
+</body>
+</html>

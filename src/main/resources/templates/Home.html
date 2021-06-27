@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+
+</head>
+<body>
+<div class="container">
+    <button><a th:href="@{/createFamily}">Создать новую семью</a></button>
+    <button><a th:href="@{/newMember}">Добавить нового пользователя в семью</a></button>
+    <button><a th:href="@{/family}">Войти в существующий аккаунт</a></button>
+</div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+.container {
+    box-sizing: border-box;
+    text-align: center;
+    width: 96vw;
+    height: 96vh;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.size{
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    border: 2px solid black;
+    height: 90px;
+    width: 250px;
+    border-radius: 15px;
+    text-decoration: none;
+    color: black;
+    font-size: 20px;
+}
