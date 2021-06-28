@@ -207,8 +207,7 @@ public class MainService {
     }
 
 
-    public GetClientMessage applyAdminFamilyRestrictions(FamilyAdminLimitationsDto familyAdminLimitationsDto) throws
-            ParseException {
+    public GetClientMessage applyAdminFamilyRestrictions(FamilyAdminLimitationsDto familyAdminLimitationsDto) throws ParseException {
         UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         GetClientMessage getClientMessage = new GetClientMessage();
         FamilyMember adminFamily = familyMemberRepository.findFamilyMemberByMemberLogin(principal.getUsername());
@@ -267,6 +266,10 @@ public class MainService {
                                     familyAdminLimitationsRepository.saveAndFlush(familyAdminLimitations);
                                 }
                             }
+
+                        } else {
+                            getClientMessage.setMessage(messageTransferObject.getMessage());
+                            return getClientMessage;
                         }
                     }
                 }
@@ -349,8 +352,7 @@ public class MainService {
         return getClientMessage;
     }
 
-    public GetClientMessage imposeRestrictionsOnFamilyGlobalAdmin(GlobalAdminFamilyLimitationsDto
-                                                                          globalAdminFamilyLimitationsDto) throws ParseException {
+    public GetClientMessage imposeRestrictionsOnFamilyGlobalAdmin(GlobalAdminFamilyLimitationsDto globalAdminFamilyLimitationsDto) throws ParseException {
         String familyLogin = globalAdminFamilyLimitationsDto.getFamilyLogin();
         GetClientMessage getClientMessage = new GetClientMessage();
         MessageTransferObject messageTransferObject = methods.chekDate(globalAdminFamilyLimitationsDto);
@@ -408,9 +410,8 @@ public class MainService {
                     methods.cancelFamilyAdminLimitations(family);
                     return getClientMessage;
                 } else {
-                    Family family1 = new Family();
                     GlobalAdminAllFamilyLimitations globalAdminAllFamilyLimitations = new GlobalAdminAllFamilyLimitations();
-                    getClientMessage = methods.createGlobalAdminAllFamilyLimitations(family1, globalAdminFamilyLimitationsDto, globalAdminAllFamilyLimitations);
+                    getClientMessage = methods.createGlobalAdminAllFamilyLimitations(family, globalAdminFamilyLimitationsDto, globalAdminAllFamilyLimitations);
                     methods.cancelPersonalLimitation(family);
                     methods.cancelFamilyAdminLimitations(family);
                     return getClientMessage;

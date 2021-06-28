@@ -134,17 +134,19 @@ public class Methods {
             long milsNow = parseCalendarDateToLong(date);
 
 
-            if (millsStart == 0 && millsEnd == 0 || millsStart < milsNow && millsEnd > milsNow || millsEnd > milsNow) {
-
-                if (maximumOneTimeWithdrawalPerDay != 0 && maximumOneTimeWithdrawalPerDay < many) {
+            if (millsStart == 0 && millsEnd == 0 && maximumOneTimeWithdrawalPerDay != 0 || millsStart < milsNow && millsEnd > milsNow && maximumOneTimeWithdrawalPerDay != 0 || millsEnd > milsNow && maximumOneTimeWithdrawalPerDay != 0) {
+                if (many > maximumOneTimeWithdrawalPerDay) {
                     messageTransferObject.setMessage("Вы привысили сумму единоразового снятия !!!");
                     messageTransferObject.setChekResult(false);
+                    return messageTransferObject;
                 }
-                int sumTransactions = 0;
+            }
+            int sumTransactions = 0;
 
-                String timeStamp = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+            String timeStamp = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
-                Optional<List<UserTransactions>> optionalUserTransactionsList = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse(timeStamp), "delete"));
+            if (millsStart == 0 && millsEnd == 0 && maximumWithdrawalPerDay != 0 || millsStart < milsNow && millsEnd > milsNow && maximumWithdrawalPerDay != 0 || millsEnd > milsNow && maximumWithdrawalPerDay != 0) {
+                Optional<List<UserTransactions>> optionalUserTransactionsList = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndFamilyMemberIdAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse(timeStamp), familyMember.getFamily_member_id() ,"delete"));
                 if (optionalUserTransactionsList.isPresent()) {
                     List<UserTransactions> userTransactionsList = optionalUserTransactionsList.get();
                     for (UserTransactions tr : userTransactionsList) {
@@ -362,7 +364,7 @@ public class Methods {
 
                     int many = parseData(manyDto.getManyCount());
 
-                    if (many > oneTime && startTime == 0 && endTime == 0 || many > oneTime && today < endTime || many > oneTime && startTime < today && endTime > today) {
+                    if (many > oneTime && startTime == 0 && endTime == 0  && oneTime != 0|| many > oneTime && today < endTime && oneTime != 0 || many > oneTime && startTime < today && endTime > today && oneTime != 0) {
                         messageTransferObject.setMessage("Вы привысили сумму единоразового снятия");
                         messageTransferObject.setChekResult(false);
                         return messageTransferObject;
@@ -377,7 +379,7 @@ public class Methods {
                         }
                     }
 
-                    if ((many + userPerDay) > perDay && startTime == 0 && endTime == 0 || (many + userPerDay) > perDay && today < endTime || (many + userPerDay) > perDay && startTime < today && endTime > today) {
+                    if ((many + userPerDay) > perDay && startTime == 0 && endTime == 0 && perDay != 0 || (many + userPerDay) > perDay && today < endTime && perDay !=0 || (many + userPerDay) > perDay && startTime < today && endTime > today && perDay != 0) {
                         messageTransferObject.setMessage("Вы привысили сумму снятия за день");
                         messageTransferObject.setChekResult(false);
                         return messageTransferObject;

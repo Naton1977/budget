@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface UserTransactionsRepository extends JpaRepository<UserTransactions, Integer> {
 
-    List<UserTransactions> findAllByDateTransactionAndTypeOfTransaction(Date date, String type);
 
     List<UserTransactions> findAllByDateTransactionAndFamilyIdAndTypeOfTransaction(Date date, int familyId, String type);
 
