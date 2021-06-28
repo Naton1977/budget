@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Transactional
@@ -37,38 +35,18 @@ public class Methods {
         GetClientMessage getClientMessage = new GetClientMessage();
         globalAdminAllFamilyLimitations.setFamilyId(family.getFamilyId());
 
-        int maxOneDay = 0;
-        try {
-            maxOneDay = Integer.parseInt(globalAdminFamilyLimitationsDto.getMaximumOneTimeWithdrawalPerDay());
-        } catch (Exception ignored) {
+        int maxOneDay = parseData(globalAdminFamilyLimitationsDto.getMaximumOneTimeWithdrawalPerDay());
 
-        }
         globalAdminAllFamilyLimitations.setMaximumOneTimeWithdrawalPerDay(maxOneDay);
 
-        int maxWithdr = 0;
-        try{
-            maxWithdr = Integer.parseInt(globalAdminFamilyLimitationsDto.getMaximumWithdrawalPerDay());
-        } catch (Exception ignored){
+        int maxWithdr = parseData(globalAdminFamilyLimitationsDto.getMaximumWithdrawalPerDay());
 
-        }
         globalAdminAllFamilyLimitations.setMaximumWithdrawalPerDay(maxWithdr);
-        SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
 
-        Date start = null;
+        Date start = parseStringToCalendarDate(globalAdminFamilyLimitationsDto.getDateStartLimitation());
 
-        try{
-            start = formatDate.parse(globalAdminFamilyLimitationsDto.getDateStartLimitation());
-        } catch (Exception ignored){
+        Date end = parseStringToCalendarDate(globalAdminFamilyLimitationsDto.getDateEndLimitation());
 
-        }
-
-        Date end = null;
-
-        try{
-            end = formatDate.parse(globalAdminFamilyLimitationsDto.getDateEndLimitation());
-        } catch (Exception ignored){
-
-        }
 
         globalAdminAllFamilyLimitations.setDateStartLimitation(start);
         globalAdminAllFamilyLimitations.setDateEndLimitation(end);
@@ -79,15 +57,32 @@ public class Methods {
 
     public GetClientMessage createGlobalAdminPersonalLimitations(GlobalAdminPersonalLimitations globalAdminPersonalLimitations, FamilyAdminLimitationsDto familyAdminLimitationsDto, FamilyMember familyMember) throws ParseException {
         GetClientMessage getClientMessage = new GetClientMessage();
-        globalAdminPersonalLimitations.setFamilyId(familyMember.getFamily().getFamilyId());
-        globalAdminPersonalLimitations.setMemberId(familyMember.getFamily_member_id());
-        globalAdminPersonalLimitations.setMaximumOneTimeWithdrawalPerDay(Integer.parseInt(familyAdminLimitationsDto.getMaximumOneTimeWithdrawalPerDay()));
-        globalAdminPersonalLimitations.setMaximumWithdrawalPerDay(Integer.parseInt(familyAdminLimitationsDto.getMaximumWithdrawalPerDay()));
-        SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
-        globalAdminPersonalLimitations.setDateStartLimitation(formatDate.parse(familyAdminLimitationsDto.getDateStartLimitation()));
-        globalAdminPersonalLimitations.setDateEndLimitation(formatDate.parse(familyAdminLimitationsDto.getDateEndLimitation()));
-        globalAdminPersonalLimitationsRepository.saveAndFlush(globalAdminPersonalLimitations);
-        getClientMessage.setMessage("Операция прошла успешно");
+        MessageTransferObject messageTransferObject = chekDate(familyAdminLimitationsDto);
+        if (messageTransferObject.isChekResult()) {
+            globalAdminPersonalLimitations.setFamilyId(familyMember.getFamily().getFamilyId());
+            globalAdminPersonalLimitations.setMemberId(familyMember.getFamily_member_id());
+
+            int maxOneDay = parseData(familyAdminLimitationsDto.getMaximumOneTimeWithdrawalPerDay());
+            globalAdminPersonalLimitations.setMaximumOneTimeWithdrawalPerDay(maxOneDay);
+
+            int maxPerDay = parseData(familyAdminLimitationsDto.getMaximumWithdrawalPerDay());
+
+            globalAdminPersonalLimitations.setMaximumWithdrawalPerDay(maxPerDay);
+
+            Date start = parseStringToCalendarDate(familyAdminLimitationsDto.getDateStartLimitation());
+
+            globalAdminPersonalLimitations.setDateStartLimitation(start);
+
+            Date end = parseStringToCalendarDate(familyAdminLimitationsDto.getDateEndLimitation());
+
+            globalAdminPersonalLimitations.setDateEndLimitation(end);
+
+            globalAdminPersonalLimitationsRepository.saveAndFlush(globalAdminPersonalLimitations);
+            getClientMessage.setMessage("Операция прошла успешно");
+            return getClientMessage;
+
+        }
+        getClientMessage.setMessage("Дата начала ограничения не должна быть больше даты конца граничения");
         return getClientMessage;
     }
 
@@ -119,7 +114,7 @@ public class Methods {
         }
     }
 
-    public MessageTransferObject chekWithdrawMoneyOnAccount(ManyDto manyDto) throws ParseException {
+    public MessageTransferObject chekWithdrawMoneyOnAccountLimitationFamilyAdmin(ManyDto manyDto) throws ParseException {
         MessageTransferObject messageTransferObject = new MessageTransferObject();
         UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         FamilyMember familyMember = familyMemberRepository.findFamilyMemberByMemberLogin(principal.getUsername());
@@ -130,29 +125,13 @@ public class Methods {
             int maximumWithdrawalPerDay = familyAdminLimitations.getMaximumWithdrawalPerDay();
             Date dateStart = familyAdminLimitations.getDateStartLimitation();
             Date dateEnd = familyAdminLimitations.getDateEndLimitation();
-            int many = 0;
-            try {
-                many = Integer.parseInt(manyDto.getManyCount());
-            } catch (Exception ignored) {
+            int many = parseData(manyDto.getManyCount());
 
-            }
             Date date = new Date();
 
-            long millsStart = 0;
-            long millsEnd = 0;
-
-            try {
-                millsStart = dateStart.getTime();
-            } catch (Exception ignored) {
-
-            }
-            try {
-                millsEnd = dateEnd.getTime();
-            } catch (Exception ignored) {
-
-            }
-
-            long milsNow = date.getTime();
+            long millsStart = parseCalendarDateToLong(dateStart);
+            long millsEnd = parseCalendarDateToLong(dateEnd);
+            long milsNow = parseCalendarDateToLong(date);
 
 
             if (millsStart == 0 && millsEnd == 0 || millsStart < milsNow && millsEnd > milsNow || millsEnd > milsNow) {
@@ -163,7 +142,9 @@ public class Methods {
                 }
                 int sumTransactions = 0;
 
-                Optional<List<UserTransactions>> optionalUserTransactionsList = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse("2021-06-27"), "delete"));
+                String timeStamp = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+
+                Optional<List<UserTransactions>> optionalUserTransactionsList = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse(timeStamp), "delete"));
                 if (optionalUserTransactionsList.isPresent()) {
                     List<UserTransactions> userTransactionsList = optionalUserTransactionsList.get();
                     for (UserTransactions tr : userTransactionsList) {
@@ -181,35 +162,14 @@ public class Methods {
 
     public MessageTransferObject chekDate(FamilyAdminLimitationsDto familyAdminLimitationsDto) throws ParseException {
         MessageTransferObject messageTransferObject = new MessageTransferObject();
-        SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
 
-        Date start = null;
-        try {
-            start = formatDate.parse(familyAdminLimitationsDto.getDateStartLimitation());
-        } catch (Exception ignored) {
+        Date start = parseStringToCalendarDate(familyAdminLimitationsDto.getDateStartLimitation());
 
-        }
-        Date end = null;
-        try {
-            end = formatDate.parse(familyAdminLimitationsDto.getDateEndLimitation());
-        } catch (Exception ignored) {
+        Date end = parseStringToCalendarDate(familyAdminLimitationsDto.getDateEndLimitation());
 
-        }
+        long millsStart = parseCalendarDateToLong(start);
+        long millsEnd = parseCalendarDateToLong(end);
 
-
-        long millsStart = 0;
-        long millsEnd = 0;
-
-        try {
-            millsStart = start.getTime();
-        } catch (Exception ignored) {
-
-        }
-        try {
-            millsEnd = end.getTime();
-        } catch (Exception ignored) {
-
-        }
         if (millsEnd < millsStart) {
             messageTransferObject.setMessage("Дата начала ограничения не должна быть меньше даты конца");
             messageTransferObject.setChekResult(false);
@@ -250,4 +210,229 @@ public class Methods {
         }
 
     }
+
+
+    public MessageTransferObject chekDate(GlobalAdminFamilyLimitationsDto globalAdminFamilyLimitationsDto) throws ParseException {
+        MessageTransferObject messageTransferObject = new MessageTransferObject();
+
+        Date start = parseStringToCalendarDate(globalAdminFamilyLimitationsDto.getDateStartLimitation());
+
+        Date end = parseStringToCalendarDate(globalAdminFamilyLimitationsDto.getDateEndLimitation());
+
+        long millsStart = parseCalendarDateToLong(start);
+        long millsEnd = parseCalendarDateToLong(end);
+
+        if (millsEnd < millsStart) {
+            messageTransferObject.setMessage("Дата начала ограничения не должна быть меньше даты конца");
+            messageTransferObject.setChekResult(false);
+            return messageTransferObject;
+        }
+
+        messageTransferObject.setChekResult(true);
+        return messageTransferObject;
+    }
+
+
+    public MessageTransferObject chekGlobalAdminFamilyLimitations(Family family, FamilyAdminLimitationsDto familyAdminLimitationsDto) {
+        MessageTransferObject messageTransferObject = new MessageTransferObject();
+        Optional<GlobalAdminAllFamilyLimitations> optionalGlobalAdminAllFamilyLimitations = Optional.ofNullable(globalAdminAllFamilyLimitationsRepository.findByFamilyId(family.getFamilyId()));
+        if (optionalGlobalAdminAllFamilyLimitations.isPresent()) {
+            GlobalAdminAllFamilyLimitations globalAdminAllFamilyLimitations = optionalGlobalAdminAllFamilyLimitations.get();
+
+            int oneTime = globalAdminAllFamilyLimitations.getMaximumOneTimeWithdrawalPerDay();
+            int perDay = globalAdminAllFamilyLimitations.getMaximumWithdrawalPerDay();
+
+            long startTime = parseCalendarDateToLong(globalAdminAllFamilyLimitations.getDateStartLimitation());
+            long endTime = parseCalendarDateToLong(globalAdminAllFamilyLimitations.getDateEndLimitation());
+
+            Date date = new Date();
+            long today = date.getTime();
+
+            int oneTimeFamilyAdmin = parseData(familyAdminLimitationsDto.getMaximumOneTimeWithdrawalPerDay());
+            int maxWithdrawFamilyAdmin = parseData(familyAdminLimitationsDto.getMaximumWithdrawalPerDay());
+
+            if (oneTime > 0 && oneTimeFamilyAdmin > 0 && startTime < today && endTime > today || startTime == 0 && endTime == 0 && oneTime > 0 && oneTimeFamilyAdmin > 0 || endTime > today && oneTime > 0 && oneTimeFamilyAdmin > 0) {
+                messageTransferObject.setMessage("Вы не можите наложить такие ограничения, такие ограничения уже наложены глобальным администратором !!!");
+                messageTransferObject.setChekResult(false);
+                return messageTransferObject;
+            }
+            if (perDay > 0 && maxWithdrawFamilyAdmin > 0 && startTime < today && endTime > today || startTime == 0 && endTime == 0 && perDay > 0 && maxWithdrawFamilyAdmin > 0 || endTime > today && perDay > 0 && maxWithdrawFamilyAdmin > 0) {
+                messageTransferObject.setMessage("Вы не можите наложить такие ограничения, такие ограничения уже наложены глобальным администратором !!!");
+                messageTransferObject.setChekResult(false);
+                return messageTransferObject;
+            }
+        }
+        return messageTransferObject;
+    }
+
+    public int parseData(Object data) {
+        int parseData = 0;
+        try {
+            parseData = Integer.parseInt((String) data);
+            return parseData;
+        } catch (Exception ignored) {
+
+        }
+        return parseData;
+    }
+
+
+    public long parseCalendarDateToLong(Date calendarDate) {
+        long parseDate = 0;
+        try {
+            parseDate = calendarDate.getTime();
+            return parseDate;
+        } catch (Exception ignored) {
+
+        }
+        return parseDate;
+    }
+
+    public Date parseStringToCalendarDate(String date) {
+        Date date1 = null;
+        SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            date1 = formatDate.parse(date);
+            return date1;
+        } catch (Exception ignored) {
+
+        }
+        return date1;
+    }
+
+    public MessageTransferObject chekGlobalAdminPersonalLimitations(int familyMemberId, FamilyAdminLimitationsDto familyAdminLimitationsDto) {
+        MessageTransferObject messageTransferObject = new MessageTransferObject();
+        Optional<GlobalAdminPersonalLimitations> globalAdminPersonalLimitationsOptional = Optional.ofNullable(globalAdminPersonalLimitationsRepository.findByMemberId(familyMemberId));
+        if (globalAdminPersonalLimitationsOptional.isPresent()) {
+            GlobalAdminPersonalLimitations globalAdminPersonalLimitations = globalAdminPersonalLimitationsOptional.get();
+
+            int oneTime = globalAdminPersonalLimitations.getMaximumOneTimeWithdrawalPerDay();
+            int perDay = globalAdminPersonalLimitations.getMaximumWithdrawalPerDay();
+
+            long startTime = parseCalendarDateToLong(globalAdminPersonalLimitations.getDateStartLimitation());
+            long endTime = parseCalendarDateToLong(globalAdminPersonalLimitations.getDateEndLimitation());
+
+            Date date = new Date();
+            long today = date.getTime();
+
+            int oneTimeFamilyAdmin = parseData(familyAdminLimitationsDto.getMaximumOneTimeWithdrawalPerDay());
+            int maxWithdrawFamilyAdmin = parseData(familyAdminLimitationsDto.getMaximumWithdrawalPerDay());
+
+            if (oneTime > 0 && oneTimeFamilyAdmin > 0 && startTime < today && endTime > today || startTime == 0 && endTime == 0 && oneTime > 0 && oneTimeFamilyAdmin > 0 || endTime > today && oneTime > 0 && oneTimeFamilyAdmin > 0) {
+                messageTransferObject.setMessage("Вы не можите наложить такие ограничения, такие ограничения уже наложены глобальным администратором !!!");
+                messageTransferObject.setChekResult(false);
+                return messageTransferObject;
+            }
+            if (perDay > 0 && maxWithdrawFamilyAdmin > 0 && startTime < today && endTime > today || startTime == 0 && endTime == 0 && perDay > 0 && maxWithdrawFamilyAdmin > 0 || endTime > today && perDay > 0 && maxWithdrawFamilyAdmin > 0) {
+                messageTransferObject.setMessage("Вы не можите наложить такие ограничения, такие ограничения уже наложены глобальным администратором !!!");
+                messageTransferObject.setChekResult(false);
+                return messageTransferObject;
+            }
+
+        }
+        return messageTransferObject;
+    }
+
+
+    public MessageTransferObject chekWithdrawManyLimitationsGlobalAdminAllFAmily(ManyDto manyDto) throws ParseException {
+        MessageTransferObject messageTransferObject = new MessageTransferObject();
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<FamilyMember> familyMemberOptional = Optional.ofNullable(familyMemberRepository.findFamilyMemberByMemberLogin(principal.getUsername()));
+        if (familyMemberOptional.isPresent()) {
+            FamilyMember familyMember = familyMemberOptional.get();
+
+            Optional<Family> familyOptional = Optional.ofNullable(familyMember.getFamily());
+            if (familyOptional.isPresent()) {
+                Family family = familyOptional.get();
+                Optional<GlobalAdminAllFamilyLimitations> globalAdminAllFamilyLimitationsOptional = Optional.ofNullable(globalAdminAllFamilyLimitationsRepository.findByFamilyId(family.getFamilyId()));
+
+                if (globalAdminAllFamilyLimitationsOptional.isPresent()) {
+                    GlobalAdminAllFamilyLimitations globalAdminAllFamilyLimitations = globalAdminAllFamilyLimitationsOptional.get();
+
+                    int oneTime = globalAdminAllFamilyLimitations.getMaximumOneTimeWithdrawalPerDay();
+                    int perDay = globalAdminAllFamilyLimitations.getMaximumWithdrawalPerDay();
+
+                    long startTime = parseCalendarDateToLong(globalAdminAllFamilyLimitations.getDateStartLimitation());
+                    long endTime = parseCalendarDateToLong(globalAdminAllFamilyLimitations.getDateEndLimitation());
+
+                    Date date = new Date();
+                    long today = date.getTime();
+
+                    int userPerDay = 0;
+
+                    int many = parseData(manyDto.getManyCount());
+
+                    if (many > oneTime && startTime == 0 && endTime == 0 || many > oneTime && today < endTime || many > oneTime && startTime < today && endTime > today) {
+                        messageTransferObject.setMessage("Вы привысили сумму единоразового снятия");
+                        messageTransferObject.setChekResult(false);
+                        return messageTransferObject;
+                    }
+
+                    String timeStamp = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+                    Optional<List<UserTransactions>> userTransactionsOptional = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndFamilyIdAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse(timeStamp), family.getFamilyId(), "delete"));
+                    if (userTransactionsOptional.isPresent()) {
+                        List<UserTransactions> userTransactionsList = userTransactionsOptional.get();
+                        for (UserTransactions ustr : userTransactionsList) {
+                            userPerDay += ustr.getSumTransaction();
+                        }
+                    }
+
+                    if ((many + userPerDay) > perDay && startTime == 0 && endTime == 0 || (many + userPerDay) > perDay && today < endTime || (many + userPerDay) > perDay && startTime < today && endTime > today) {
+                        messageTransferObject.setMessage("Вы привысили сумму снятия за день");
+                        messageTransferObject.setChekResult(false);
+                        return messageTransferObject;
+                    }
+                }
+            }
+        }
+        return messageTransferObject;
+    }
+
+    public MessageTransferObject chekWithdrawManyLimitationsGlobalAdminPersonal(ManyDto manyDto) throws ParseException {
+        MessageTransferObject messageTransferObject = new MessageTransferObject();
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<FamilyMember> familyMemberOptional = Optional.ofNullable(familyMemberRepository.findFamilyMemberByMemberLogin(principal.getUsername()));
+        if (familyMemberOptional.isPresent()) {
+            FamilyMember familyMember = familyMemberOptional.get();
+            Optional<GlobalAdminPersonalLimitations> globalAdminPersonalLimitationsOptional = Optional.ofNullable(globalAdminPersonalLimitationsRepository.findByMemberId(familyMember.getFamily_member_id()));
+            if (globalAdminPersonalLimitationsOptional.isPresent()) {
+                GlobalAdminPersonalLimitations globalAdminPersonalLimitations = globalAdminPersonalLimitationsOptional.get();
+                int oneTime = globalAdminPersonalLimitations.getMaximumOneTimeWithdrawalPerDay();
+                int perDay = globalAdminPersonalLimitations.getMaximumWithdrawalPerDay();
+
+                long startTime = parseCalendarDateToLong(globalAdminPersonalLimitations.getDateStartLimitation());
+                long endTime = parseCalendarDateToLong(globalAdminPersonalLimitations.getDateEndLimitation());
+
+                Date date = new Date();
+                long today = date.getTime();
+
+                int userPerDay = 0;
+
+                int many = parseData(manyDto.getManyCount());
+
+                if (many > oneTime && startTime == 0 && endTime == 0 || many > oneTime && today < endTime || many > oneTime && startTime < today && endTime > today) {
+                    messageTransferObject.setMessage("Вы привысили сумму единоразового снятия");
+                    messageTransferObject.setChekResult(false);
+                    return messageTransferObject;
+                }
+
+                String timeStamp = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+                Optional<List<UserTransactions>> userTransactionsOptional = Optional.ofNullable(userTransactionsRepository.findAllByDateTransactionAndFamilyMemberIdAndTypeOfTransaction(new SimpleDateFormat("yyyy-MM-dd").parse(timeStamp), familyMember.getFamily_member_id(), "delete"));
+                if (userTransactionsOptional.isPresent()) {
+                    List<UserTransactions> userTransactionsList = userTransactionsOptional.get();
+                    for (UserTransactions ustr : userTransactionsList) {
+                        userPerDay += ustr.getSumTransaction();
+                    }
+                }
+
+                if ((many + userPerDay) > perDay && startTime == 0 && endTime == 0 || (many + userPerDay) > perDay && today < endTime || (many + userPerDay) > perDay && startTime < today && endTime > today) {
+                    messageTransferObject.setMessage("Вы привысили сумму снятия за день");
+                    messageTransferObject.setChekResult(false);
+                    return messageTransferObject;
+                }
+            }
+        }
+        return messageTransferObject;
+    }
+
 }

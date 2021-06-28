@@ -10,4 +10,8 @@ public interface UserTransactionsRepository extends JpaRepository<UserTransactio
 
     List<UserTransactions> findAllByDateTransactionAndTypeOfTransaction(Date date, String type);
 
+    List<UserTransactions> findAllByDateTransactionAndFamilyIdAndTypeOfTransaction(Date date, int familyId, String type);
+
+    List<UserTransactions> findAllByDateTransactionAndFamilyMemberIdAndTypeOfTransaction(Date date, int familyMemberId, String type);
+
 }
