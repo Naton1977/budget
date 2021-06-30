@@ -2,7 +2,6 @@ package com.example.budget.domain.entity;
 
 
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.util.Date;
